@@ -1,0 +1,45 @@
+-- ====================================================
+-- SQL Queries to Analyze Sales by Time Period
+-- Source Table: master.goldfactsales
+-- Author: [Your Name]
+-- Description:
+--   1. Monthly Sales using YEAR() and MONTH()
+--   2. Monthly Sales using DATE_FORMAT() (like DATE_TRUNC)
+--   3. Yearly Sales using DATE_FORMAT() (like DATE_TRUNC)
+-- ====================================================
+
+-- 1️⃣ Group by Year and Month using built-in YEAR(), MONTH()
+SELECT 
+    YEAR(order_date) AS order_year,
+    MONTH(order_date) AS order_month,
+    SUM(sales_amount) AS total_sales,
+    COUNT(DISTINCT customer_key) AS total_customer,
+    SUM(quantity) AS total_quantity
+FROM master.goldfactsales
+WHERE order_date IS NOT NULL
+GROUP BY YEAR(order_date), MONTH(order_date)
+ORDER BY YEAR(order_date), MONTH(order_date);
+
+
+-- 2️⃣ Group by first day of each month (acts like DATE_TRUNC('month'))
+SELECT 
+    DATE_FORMAT(order_date, '%Y-%m-01') AS order_month,
+    SUM(sales_amount) AS total_sales,
+    COUNT(DISTINCT customer_key) AS total_customer,
+    SUM(quantity) AS total_quantity
+FROM master.goldfactsales
+WHERE order_date IS NOT NULL
+GROUP BY DATE_FORMAT(order_date, '%Y-%m-01')
+ORDER BY DATE_FORMAT(order_date, '%Y-%m-01');
+
+
+-- 3️⃣ Group by first day of each year (acts like DATE_TRUNC('year'))
+SELECT 
+    DATE_FORMAT(order_date, '%Y-01-01') AS order_year,
+    SUM(sales_amount) AS total_sales,
+    COUNT(DISTINCT customer_key) AS total_customer,
+    SUM(quantity) AS total_quantity
+FROM master.goldfactsales
+WHERE order_date IS NOT NULL
+GROUP BY DATE_FORMAT(order_date, '%Y-01-01')
+ORDER BY DATE_FORMAT(order_date, '%Y-01-01');
