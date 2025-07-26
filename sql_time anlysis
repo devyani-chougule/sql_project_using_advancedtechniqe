@@ -1,7 +1,6 @@
 -- ====================================================
 -- SQL Queries to Analyze Sales by Time Period
 -- Source Table: master.goldfactsales
--- Author: [Your Name]
 -- Description:
 --   1. Monthly Sales using YEAR() and MONTH()
 --   2. Monthly Sales using DATE_FORMAT() (like DATE_TRUNC)
