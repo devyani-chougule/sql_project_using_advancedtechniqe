@@ -1,0 +1,38 @@
+/* 
+Group customers into segments based on spending behavior:
+- VIP:     ≥ 12 months lifespan AND spending > $5,000
+- Regular: ≥ 12 months lifespan AND spending ≤ $5,000
+- New:     < 12 months lifespan
+Then count how many customers are in each group 
+*/
+
+WITH spending AS (
+  SELECT 
+    c.customer_key,
+    SUM(f.sales_amount) AS total_spending,
+    MIN(f.order_date) AS first_order,
+    MAX(f.order_date) AS last_order,
+    TIMESTAMPDIFF(MONTH, MIN(f.order_date), MAX(f.order_date)) AS lifespan
+  FROM master.goldfactsales f
+  LEFT JOIN master.customer c
+    ON f.customer_key = c.customer_key
+  GROUP BY c.customer_key
+)
+
+SELECT 
+  category,
+  COUNT(customer_key) AS total_customers
+FROM (
+  SELECT 
+    customer_key,
+    lifespan,
+    total_spending,
+    CASE
+      WHEN lifespan >= 12 AND total_spending > 5000 THEN 'VIP'
+      WHEN lifespan >= 12 AND total_spending <= 5000 THEN 'Regular'
+      ELSE 'New'
+    END AS category
+  FROM spending
+) t
+GROUP BY category
+ORDER BY total_customers DESC;
