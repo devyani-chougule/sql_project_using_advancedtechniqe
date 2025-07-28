@@ -1,0 +1,45 @@
+-- =============================================
+-- Product Sales Year-over-Year (YoY) Comparison
+-- Description:
+--   Analyze yearly sales by product with:
+--   - Average comparison
+--   - Difference from previous year
+--   - Category classification
+-- =============================================
+
+WITH yearly_sales AS (
+  SELECT 
+    YEAR(f.order_date) AS order_year,
+    p.product_name,
+    SUM(f.sales_amount) AS current_sales
+  FROM master.goldfactsales f 
+  LEFT JOIN master.product p ON f.product_key = p.product_key
+  WHERE f.order_date IS NOT NULL
+  GROUP BY 
+    YEAR(f.order_date),
+    p.product_name
+)
+
+SELECT 
+  order_year,
+  product_name,
+  current_sales,
+  AVG(current_sales) OVER (PARTITION BY product_name) AS average_value,
+  current_sales - AVG(current_sales) OVER (PARTITION BY product_name) AS average_difference,
+  
+  CASE
+    WHEN current_sales - AVG(current_sales) OVER (PARTITION BY product_name) > 0 THEN 'Above average'
+    WHEN current_sales - AVG(current_sales) OVER (PARTITION BY product_name) < 0 THEN 'Below average'
+    ELSE 'Average'
+  END AS category,
+
+  LAG(current_sales) OVER (PARTITION BY product_name ORDER BY order_year) AS previous_year,
+  current_sales - LAG(current_sales) OVER (PARTITION BY product_name ORDER BY order_year) AS difference_in_previous_year,
+
+  CASE
+    WHEN current_sales - LAG(current_sales) OVER (PARTITION BY product_name ORDER BY order_year) > 0 THEN 'Increase'
+    WHEN current_sales - LAG(current_sales) OVER (PARTITION BY product_name ORDER BY order_year) < 0 THEN 'Decrease'
+    ELSE 'No change'
+  END AS previous_year_change
+
+FROM yearly_sales;
